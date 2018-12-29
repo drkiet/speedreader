@@ -14,7 +14,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junit.version>4.12</junit.version>
-		<tika.version>1.19.1</tika.version>
+		<tika.version>1.20</tika.version>
 		<hamcrest.version>1.3</hamcrest.version>
 		<guice.version>4.1.0</guice.version>
 		<jdk.version>1.8</jdk.version>
