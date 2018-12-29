@@ -14,7 +14,11 @@ import javax.swing.JTextArea;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Highlighter;
+import javax.swing.text.Highlighter.HighlightPainter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +52,8 @@ public class TextPanel extends JPanel {
 	private int textAreaFontSize = DEFAULT_TEXT_AREA_FONT_SIZE;
 	private int defaultBlinkRate = 0;
 	private boolean doneReading = false;
+
+	private Object highlightedWord = null;
 
 	public boolean isDoneReading() {
 		return doneReading;
@@ -85,8 +91,9 @@ public class TextPanel extends JPanel {
 		displayHelpText();
 		defaultBlinkRate = textArea.getCaret().getBlinkRate();
 		textArea.setCaretPosition(0);
-		textArea.setCaret(new FancyCaret());
-		textArea.setCaretColor(Color.red);
+//		textArea.setCaret(new FancyCaret());
+//		textArea.setCaretColor(Color.red);
+		textArea.setCaretColor(Color.white);
 		textArea.setFont(new Font(textAreaFontName, Font.PLAIN, textAreaFontSize));
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
@@ -124,6 +131,7 @@ public class TextPanel extends JPanel {
 	}
 
 	public void resetReading() {
+		logger.info("Reset reading ...");
 		restart();
 		readingText = null;
 		textArea.setText(helpText);
@@ -135,39 +143,43 @@ public class TextPanel extends JPanel {
 		repaint();
 	}
 
-	public void next() {
+	public void next() throws BadLocationException {
 
 		if (readingText == null) {
 			doneReading = false;
 			readingText = textArea.getText();
-			textArea.setText(readingText);
 			readingTextManager = new ReadingTextManager2(readingText);
 			textArea.setText(readingTextManager.getReadingText());
 		}
 
 		String wordToRead = getNextWord();
-		StringBuilder sb = new StringBuilder();
-
-		for (int idx = 0; idx < wordToRead.length(); idx++) {
-			char curChar = wordToRead.charAt(idx);
-			if (curChar == '-' || Character.isAlphabetic(curChar) || Character.isDigit(curChar)) {
-				sb.append(curChar);
-			}
-		}
-
-		wordToRead = sb.toString();
-		logger.info("word2Read: {}", wordToRead);
 
 		if (wordToRead != null) {
-			textArea.setCaretPosition(readingTextManager.getCurrentCaret());
+			if (wordToRead.isEmpty()) {
+				return;
+			}
+
+			highlight(wordToRead);
 			textArea.requestFocus();
 			displayingWordLabel.setText(wordToRead);
-			displayReadingInformation(); 
+			displayReadingInformation();
 		} else {
 			displayReadingInformation();
 			doneReading = true;
 		}
 		repaint();
+	}
+
+	public void highlight(String wordToRead) throws BadLocationException {
+		textArea.setCaretPosition(readingTextManager.getCurrentCaret());
+		Highlighter hl = textArea.getHighlighter();
+		HighlightPainter painter = new DefaultHighlighter.DefaultHighlightPainter(Color.pink);
+		int p0 = textArea.getCaretPosition();
+		int p1 = p0 + wordToRead.length();
+		if (highlightedWord != null) {
+			hl.removeHighlight(highlightedWord);
+		}
+		highlightedWord = hl.addHighlight(p0, p1, painter);
 	}
 
 	private void displayReadingInformation() {

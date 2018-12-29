@@ -79,14 +79,8 @@ public class FormPanel extends JPanel {
 			fileName = fileNameField.getText();
 			TextApp textApp = new TextApp();
 			try (InputStream is = new FileInputStream(fileName)) {
-				text = textApp.parseToString(is);
+				text = textApp.parseToString2(is);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (TikaException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (SAXException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

@@ -1,6 +1,8 @@
 package com.drkiettran.tools.speedreader;
 
 import java.awt.BorderLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.Timer;
 
@@ -34,12 +36,10 @@ public class MainFrame extends JFrame {
 		formPanel.setReaderListener((Command cmd) -> {
 			switch (cmd) {
 			case LOAD:
-				textPanel.loadTextFromFile(formPanel.getText());
+				loadTextFromFile();
 				break;
 			case BROWSE:
-				if (fileChooser.showSaveDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
-					formPanel.setFileName(fileChooser.getSelectedFile().getAbsolutePath());
-				}
+				browseDirectoryForFile();
 				break;
 			case SEARCH:
 				searchText(formPanel.getSearchText());
@@ -52,47 +52,46 @@ public class MainFrame extends JFrame {
 		textPanel.setReaderListener((Command cmd) -> {
 			switch (cmd) {
 			case RESET:
-				textPanel.resetReading();
+				resetReading();
 				break;
 			default:
 				break;
 			}
 		});
 
+		textPanel.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (isReading()) {
+					stopReading();
+				} else {
+					startReading();
+				}
+			}
+		});
+
 		toolbar.setReaderListener((Command cmd) -> {
 			switch (cmd) {
 			case START_AT:
-				textPanel.setCurrentCaretAt();
+				startReadingAtCaret();
 				// let it fall through ...
 			case START:
-				if (textTimerTask == null) {
-					textTimerTask = new TextTimerTask();
-					textTimerTask.register(textPanel);
-					timer = new Timer();
-					int speedWpm = formPanel.getSpeedWpm();
-					timer.schedule(textTimerTask, 0, (60 * 1000) / speedWpm);
-					textPanel.startReading();
-				}
+				startReading();
 				break;
 
 			case RESET:
-				textPanel.resetReading();
+				resetReading();
 				// let it fall ...
 			case STOP:
-				if (textTimerTask != null) {
-					timer.cancel();
-					textTimerTask = null;
-					timer = null;
-					textPanel.stopReading();
-				}
+				stopReading();
 				break;
 
 			case LARGER_TEXT_FONT:
-				textPanel.setLargerTextFont();
+				makeLargerFont();
 				break;
 
 			case SMALLER_TEXT_FONT:
-				textPanel.setSmallerTextFont();
+				makeSmallerFont();
 				break;
 
 			case LARGER_WORD_FONT:
@@ -120,6 +119,56 @@ public class MainFrame extends JFrame {
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setVisible(true);
+	}
+
+	public void browseDirectoryForFile() {
+		if (fileChooser.showSaveDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
+			formPanel.setFileName(fileChooser.getSelectedFile().getAbsolutePath());
+		}
+	}
+
+	public void loadTextFromFile() {
+		textPanel.loadTextFromFile(formPanel.getText());
+	}
+
+	public void startReadingAtCaret() {
+		textPanel.setCurrentCaretAt();
+	}
+
+	public void makeSmallerFont() {
+		textPanel.setSmallerTextFont();
+	}
+
+	public void makeLargerFont() {
+		textPanel.setLargerTextFont();
+	}
+
+	public void resetReading() {
+		textPanel.resetReading();
+	}
+
+	public void stopReading() {
+		if (isReading()) {
+			timer.cancel();
+			textTimerTask = null;
+			timer = null;
+			textPanel.stopReading();
+		}
+	}
+
+	public void startReading() {
+		if (!isReading()) {
+			textTimerTask = new TextTimerTask();
+			textTimerTask.register(textPanel);
+			timer = new Timer();
+			int speedWpm = formPanel.getSpeedWpm();
+			timer.schedule(textTimerTask, 0, (60 * 1000) / speedWpm);
+			textPanel.startReading();
+		}
+	}
+
+	private boolean isReading() {
+		return textTimerTask != null;
 	}
 
 	private void searchText(String searchText) {
