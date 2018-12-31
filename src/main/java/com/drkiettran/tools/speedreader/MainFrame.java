@@ -3,11 +3,13 @@ package com.drkiettran.tools.speedreader;
 import java.awt.BorderLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.io.IOException;
 import java.util.Timer;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.text.BadLocationException;
 
 import com.drkiettran.tools.speedreader.ReaderListener.Command;
 
@@ -37,6 +39,7 @@ public class MainFrame extends JFrame {
 			switch (cmd) {
 			case LOAD:
 				loadTextFromFile();
+				formPanel.disableSearch();
 				break;
 			case BROWSE:
 				browseDirectoryForFile();
@@ -68,6 +71,14 @@ public class MainFrame extends JFrame {
 					startReading();
 				}
 			}
+
+			public void mouseEntered(MouseEvent e) {
+				System.out.println("mouse enters ...");
+			}
+
+			public void mouseExited(MouseEvent e) {
+				System.out.println("mouse exits ...");
+			}
 		});
 
 		toolbar.setReaderListener((Command cmd) -> {
@@ -77,6 +88,7 @@ public class MainFrame extends JFrame {
 				// let it fall through ...
 			case START:
 				startReading();
+				formPanel.enableSearch();
 				break;
 
 			case RESET:
@@ -132,7 +144,7 @@ public class MainFrame extends JFrame {
 	}
 
 	public void startReadingAtCaret() {
-		textPanel.setCurrentCaretAt();
+		textPanel.startReadingAt();
 	}
 
 	public void makeSmallerFont() {
@@ -172,11 +184,7 @@ public class MainFrame extends JFrame {
 	}
 
 	private void searchText(String searchText) {
-		if (textPanel.search(searchText) < 0) {
-			textPanel.setInfo(searchText + " not found!");
-		} else {
-			textPanel.setInfo(searchText + " found!");
-		}
+		textPanel.search(searchText);
 	}
 
 }

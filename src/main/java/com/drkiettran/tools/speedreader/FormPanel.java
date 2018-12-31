@@ -16,9 +16,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 
-import org.apache.tika.exception.TikaException;
-import org.xml.sax.SAXException;
-
 import com.drkiettran.tika.text.TextApp;
 import com.drkiettran.tools.speedreader.ReaderListener.Command;
 
@@ -199,7 +196,7 @@ public class FormPanel extends JPanel {
 		gc.insets = new Insets(0, 0, 0, 0);
 		gc.anchor = GridBagConstraints.FIRST_LINE_START;
 		add(searchButton, gc);
-
+		disableSearch();
 	}
 
 	public void setReaderListener(ReaderListener readerListener) {
@@ -212,5 +209,15 @@ public class FormPanel extends JPanel {
 
 	public String getSearchText() {
 		return searchTextField.getText();
+	}
+
+	public void enableSearch() {
+		searchButton.setEnabled(true);
+		searchTextField.setEnabled(true);
+	}
+
+	public void disableSearch() {
+		searchButton.setEnabled(false);
+		searchTextField.setEnabled(false);
 	}
 }

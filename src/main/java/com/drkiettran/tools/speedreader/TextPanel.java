@@ -3,8 +3,14 @@ package com.drkiettran.tools.speedreader;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -23,12 +29,16 @@ import javax.swing.text.Highlighter.HighlightPainter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.drkiettran.tika.text.ReadingTextManager2;
+import com.drkiettran.tika.text.ReadingTextManager;
+import com.drkiettran.tika.text.SearchResult;
 import com.drkiettran.tika.text.TextApp;
+import com.drkiettran.tika.text.Word;
 import com.drkiettran.tools.speedreader.ReaderListener.Command;
 
 public class TextPanel extends JPanel {
-	private static final Logger logger = LoggerFactory.getLogger(TextPanel.class);
+	private static final String LINE_INFO = " *** line: ";
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(TextPanel.class);
 
 	private static final int DEFAULT_DISPLAYING_FONT_SIZE = 60;
 	private static final int DEFAULT_TEXT_AREA_FONT_SIZE = 18;
@@ -44,16 +54,26 @@ public class TextPanel extends JPanel {
 	private JLabel infoLabel;
 	private JLabel titleLabel;
 	private ReaderListener readerListener;
-	private ReadingTextManager2 readingTextManager;
+	private ReadingTextManager readingTextManager;
 
 	private String displayingFontName = "Candara";
+	private String infoFontName = "Candara";
 	private int displayingWordFontSize = DEFAULT_DISPLAYING_FONT_SIZE;
-	private String textAreaFontName = "Times New Roman";
+	private int infoFontSize = 12;
+	private String textAreaFontName = "Candara";
 	private int textAreaFontSize = DEFAULT_TEXT_AREA_FONT_SIZE;
 	private int defaultBlinkRate = 0;
 	private boolean doneReading = false;
 
 	private Object highlightedWord = null;
+
+	private SearchResult searchResult = null;
+
+	private List<Object> highlightedWords = new ArrayList<Object>();
+	private Object highlightSelectedWord = null;
+	private Word selectedWord;
+
+	private String searchText;
 
 	public boolean isDoneReading() {
 		return doneReading;
@@ -67,9 +87,11 @@ public class TextPanel extends JPanel {
 	}
 
 	private void arrangeFixedComponents() {
-		displayingWordLabel = new JLabel("");
+		displayingWordLabel = new JLabel();
 		displayingWordLabel.setFont(new Font(displayingFontName, Font.PLAIN, displayingWordFontSize));
+		displayingWordLabel.setHorizontalAlignment(JLabel.CENTER);
 		infoLabel = new JLabel("");
+		infoLabel.setFont(new Font(infoFontName, Font.PLAIN, infoFontSize));
 		titleLabel = new JLabel("Title:");
 	}
 
@@ -91,8 +113,6 @@ public class TextPanel extends JPanel {
 		displayHelpText();
 		defaultBlinkRate = textArea.getCaret().getBlinkRate();
 		textArea.setCaretPosition(0);
-//		textArea.setCaret(new FancyCaret());
-//		textArea.setCaretColor(Color.red);
 		textArea.setCaretColor(Color.white);
 		textArea.setFont(new Font(textAreaFontName, Font.PLAIN, textAreaFontSize));
 		textArea.setLineWrap(true);
@@ -116,6 +136,83 @@ public class TextPanel extends JPanel {
 			}
 
 		});
+
+		textArea.addMouseMotionListener(getMouseMotionListener());
+		textArea.addMouseListener(getMouseListner());
+
+	}
+
+	private MouseListener getMouseListner() {
+
+		return new MouseListener() {
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (readingTextManager != null) {
+					selectedWord = readingTextManager.getWordAt(textArea.getCaretPosition());
+					try {
+						highlightSelectedWord = highlight(selectedWord.getTransformedWord(),
+								selectedWord.getIndexOfText(), Color.GRAY, highlightSelectedWord);
+					} catch (BadLocationException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+		};
+	}
+
+	private MouseMotionListener getMouseMotionListener() {
+		return new MouseMotionListener() {
+
+			@Override
+			public void mouseMoved(MouseEvent e) {
+
+				int viewToModel = textArea.viewToModel(e.getPoint());
+				if (viewToModel != -1) {
+					try {
+						String labelText = infoLabel.getText();
+						int idx = labelText.indexOf(LINE_INFO);
+						if (idx >= 0) {
+							labelText = labelText.substring(0, idx);
+						}
+						infoLabel.setText(labelText + LINE_INFO + (1 + textArea.getLineOfOffset(viewToModel)));
+						repaint();
+					} catch (BadLocationException e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
+
+			@Override
+			public void mouseDragged(MouseEvent e) {
+			}
+		};
+
 	}
 
 	private void displayHelpText() {
@@ -127,11 +224,11 @@ public class TextPanel extends JPanel {
 	}
 
 	private void restart() {
-		readingTextManager = new ReadingTextManager2(helpText);
+		readingTextManager = new ReadingTextManager(helpText);
 	}
 
 	public void resetReading() {
-		logger.info("Reset reading ...");
+		LOGGER.info("Reset reading ...");
 		restart();
 		readingText = null;
 		textArea.setText(helpText);
@@ -148,7 +245,7 @@ public class TextPanel extends JPanel {
 		if (readingText == null) {
 			doneReading = false;
 			readingText = textArea.getText();
-			readingTextManager = new ReadingTextManager2(readingText);
+			readingTextManager = new ReadingTextManager(readingText);
 			textArea.setText(readingTextManager.getReadingText());
 		}
 
@@ -159,7 +256,7 @@ public class TextPanel extends JPanel {
 				return;
 			}
 
-			highlight(wordToRead);
+			highlightedWord = highlight(wordToRead, readingTextManager.getCurrentCaret(), Color.PINK, highlightedWord);
 			textArea.requestFocus();
 			displayingWordLabel.setText(wordToRead);
 			displayReadingInformation();
@@ -170,16 +267,21 @@ public class TextPanel extends JPanel {
 		repaint();
 	}
 
-	public void highlight(String wordToRead) throws BadLocationException {
-		textArea.setCaretPosition(readingTextManager.getCurrentCaret());
+	private Object highlight(String wordToRead, int caret, Color color, Object highlightedWord)
+			throws BadLocationException {
+		textArea.setCaretPosition(caret);
 		Highlighter hl = textArea.getHighlighter();
-		HighlightPainter painter = new DefaultHighlighter.DefaultHighlightPainter(Color.pink);
+		HighlightPainter painter = new DefaultHighlighter.DefaultHighlightPainter(color);
 		int p0 = textArea.getCaretPosition();
 		int p1 = p0 + wordToRead.length();
 		if (highlightedWord != null) {
 			hl.removeHighlight(highlightedWord);
 		}
-		highlightedWord = hl.addHighlight(p0, p1, painter);
+		return hl.addHighlight(p0, p1, painter);
+	}
+
+	private void unHighlight(Object highlightedWord) {
+		textArea.getHighlighter().removeHighlight(highlightedWord);
 	}
 
 	private void displayReadingInformation() {
@@ -187,8 +289,29 @@ public class TextPanel extends JPanel {
 		int totalWords = readingTextManager.getTotalWords();
 		int readingPercentage = (100 * wordsFromBeginning) / totalWords;
 
-		infoLabel.setText(String.format("%d of %d words (%d%%)", wordsFromBeginning, totalWords, readingPercentage));
+		infoLabel.setText(String.format("%d of %d words (%d%%) - line %d of %d", wordsFromBeginning, totalWords,
+				readingPercentage, getCurrentLineNumber(), getLineCount()));
 		infoLabel.setForeground(Color.BLUE);
+	}
+
+	private void displaySearchResult() {
+
+		infoLabel.setText(String.format("found %d '%s's", searchResult.getNumberMatchedWords(), searchText));
+		infoLabel.setForeground(Color.BLUE);
+	}
+
+	private int getLineCount() {
+		return textArea.getLineCount();
+	}
+
+	private int getCurrentLineNumber() {
+		try {
+			return textArea.getLineOfOffset(textArea.getCaretPosition()) + 1;
+		} catch (BadLocationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return -1;
 	}
 
 	private String getNextWord() {
@@ -281,11 +404,30 @@ public class TextPanel extends JPanel {
 		repaint();
 	}
 
-	public int search(String searchText) {
-		if (readingTextManager != null) {
-			return readingTextManager.search(searchText);
+	public void search(String searchText) {
+		if (readingTextManager == null) {
+			return;
 		}
-		return -1;
+
+		for (Object highlightedWord : highlightedWords) {
+			unHighlight(highlightedWord);
+		}
+
+		this.searchText = searchText;
+		this.searchResult = readingTextManager.search(searchText);
+		Hashtable<Integer, String> matchedWords = searchResult.getMatchedWords();
+		highlightedWords = new ArrayList<Object>();
+
+		for (Integer idx : matchedWords.keySet()) {
+			try {
+				LOGGER.info("highlighted at /{}/", matchedWords.get(idx));
+				highlightedWords.add(highlight(matchedWords.get(idx), idx, Color.GREEN, null));
+			} catch (BadLocationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		displaySearchResult();
 	}
 
 	public void setInfo(String info) {
@@ -299,5 +441,12 @@ public class TextPanel extends JPanel {
 			infoLabel.setForeground(Color.RED);
 		}
 		repaint();
+	}
+
+	public void startReadingAt() {
+		if (readingTextManager != null) {
+			readingTextManager.setCurrentCaret(selectedWord.getIndexOfText());
+			startReading();
+		}
 	}
 }
