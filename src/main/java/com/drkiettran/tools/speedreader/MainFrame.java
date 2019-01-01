@@ -3,14 +3,11 @@ package com.drkiettran.tools.speedreader;
 import java.awt.BorderLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 import java.io.IOException;
 import java.util.Timer;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.text.BadLocationException;
-
 import com.drkiettran.tools.speedreader.ReaderListener.Command;
 
 public class MainFrame extends JFrame {
@@ -70,14 +67,6 @@ public class MainFrame extends JFrame {
 				} else {
 					startReading();
 				}
-			}
-
-			public void mouseEntered(MouseEvent e) {
-				System.out.println("mouse enters ...");
-			}
-
-			public void mouseExited(MouseEvent e) {
-				System.out.println("mouse exits ...");
 			}
 		});
 

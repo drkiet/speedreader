@@ -17,6 +17,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JToolTip;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -71,7 +72,8 @@ public class TextPanel extends JPanel {
 
 	private List<Object> highlightedWords = new ArrayList<Object>();
 	private Object highlightSelectedWord = null;
-	private Word selectedWord;
+	private Word selectedWord = null;
+	private Word wordAtMousePos = null;
 
 	private String searchText;
 
@@ -174,14 +176,12 @@ public class TextPanel extends JPanel {
 
 			@Override
 			public void mouseEntered(MouseEvent e) {
-				// TODO Auto-generated method stub
 
 			}
 
 			@Override
 			public void mouseExited(MouseEvent e) {
-				// TODO Auto-generated method stub
-
+				wordAtMousePos = null;
 			}
 		};
 	}
@@ -190,6 +190,12 @@ public class TextPanel extends JPanel {
 		return new MouseMotionListener() {
 
 			@Override
+			/**
+			 * When detecting a mouse movement, we are locating the word at the location of
+			 * the mouse pointer.
+			 * 
+			 * @param e
+			 */
 			public void mouseMoved(MouseEvent e) {
 
 				int viewToModel = textArea.viewToModel(e.getPoint());
@@ -201,11 +207,34 @@ public class TextPanel extends JPanel {
 							labelText = labelText.substring(0, idx);
 						}
 						infoLabel.setText(labelText + LINE_INFO + (1 + textArea.getLineOfOffset(viewToModel)));
+						textArea.setCaretPosition(textArea.viewToModel(e.getPoint()));
+
+						String curWord = "--";
+						int caretPos = textArea.getCaretPosition();
+
+						if (readingTextManager != null) {
+							wordAtMousePos = readingTextManager.getWordAt(textArea.getCaretPosition());
+							if (mouseOverWord(caretPos)) {
+								curWord = wordAtMousePos.getTransformedWord();
+								SearchResult sr = readingTextManager.search(curWord);
+								String tip = String.format("%d '%s's found", sr.getNumberMatchedWords(), curWord);
+								textArea.setToolTipText(tip);
+							}
+
+						}
+
+						LOGGER.info("{}. caret: {}; word: {}", getCurrentLineNumber(), textArea.getCaretPosition(),
+								curWord);
 						repaint();
 					} catch (BadLocationException e1) {
 						e1.printStackTrace();
 					}
 				}
+			}
+
+			public boolean mouseOverWord(int caretPos) {
+				return caretPos >= wordAtMousePos.getIndexOfText()
+						&& caretPos <= wordAtMousePos.getIndexOfText() + wordAtMousePos.getTransformedWord().length();
 			}
 
 			@Override
