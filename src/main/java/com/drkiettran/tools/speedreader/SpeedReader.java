@@ -8,7 +8,7 @@ import javax.swing.SwingUtilities;
  * Hello world!
  *
  */
-public class App {
+public class SpeedReader {
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {

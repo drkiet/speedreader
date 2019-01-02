@@ -29,12 +29,12 @@ import javax.swing.text.Highlighter.HighlightPainter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.drkiettran.tika.text.Document;
-import com.drkiettran.tika.text.Page;
-import com.drkiettran.tika.text.ReadingTextManager;
-import com.drkiettran.tika.text.SearchResult;
-import com.drkiettran.tika.text.TextApp;
-import com.drkiettran.tika.text.Word;
+import com.drkiettran.text.ReadingTextManager;
+import com.drkiettran.text.TextApp;
+import com.drkiettran.text.model.Document;
+import com.drkiettran.text.model.Page;
+import com.drkiettran.text.model.SearchResult;
+import com.drkiettran.text.model.Word;
 import com.drkiettran.tools.speedreader.ReaderListener.Command;
 
 public class TextPanel extends JPanel {

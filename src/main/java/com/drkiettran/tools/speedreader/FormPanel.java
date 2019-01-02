@@ -5,10 +5,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -20,9 +16,8 @@ import javax.swing.border.Border;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.drkiettran.tika.text.Document;
-import com.drkiettran.tika.text.Page;
-import com.drkiettran.tika.text.TextApp;
+import com.drkiettran.text.TextApp;
+import com.drkiettran.text.model.Document;
 import com.drkiettran.tools.speedreader.ReaderListener.Command;
 
 /**
@@ -88,27 +83,9 @@ public class FormPanel extends JPanel {
 		loadButton.addActionListener((ActionEvent actionEvent) -> {
 			fileName = fileNameField.getText();
 			TextApp textApp = new TextApp();
-			try (InputStream is = new FileInputStream(fileName)) {
-				text = textApp.parseToString2(is);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 
-			try (InputStream is = new FileInputStream(fileName)) {
-				if (fileName.endsWith(".pdf")) {
-					document = textApp.getPagesFromPdf(is);
-					LOGGER.info("{} has {} pages", fileName, document.getPageCount());
-//					int pageNo = 1;
-//					while (true) {
-//						Page page = document.nextPage();
-//						LOGGER.info("*** Page {}\n: {}\n", pageNo++, page.getRtm().getText());
-//					}
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			document = textApp.getPages(fileName);
+			LOGGER.info("{} has {} pages", fileName, document.getPageCount());
 			readerListener.invoke(Command.LOAD);
 		});
 
