@@ -286,7 +286,7 @@ public class TextPanel extends JPanel {
 		}
 
 		String wordToRead = getNextWord();
-
+		LOGGER.info("wordtoread: {}", wordToRead);
 		if (wordToRead != null) {
 			if (wordToRead.isEmpty()) {
 				return;
@@ -324,7 +324,7 @@ public class TextPanel extends JPanel {
 		int wordsFromBeginning = readingTextManager.getWordsFromBeginning();
 		int totalWords = readingTextManager.getTotalWords();
 		int readingPercentage = 0;
-		
+
 		if (totalWords != 0) {
 			readingPercentage = (100 * wordsFromBeginning) / totalWords;
 		}
@@ -399,6 +399,7 @@ public class TextPanel extends JPanel {
 		textArea.getCaret().setBlinkRate(defaultBlinkRate);
 		textArea.setCaretPosition(readingTextManager.getCurrentCaret());
 		textArea.requestFocus();
+		this.doneReading = false;
 	}
 
 	public void startReading() {

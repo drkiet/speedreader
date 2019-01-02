@@ -132,10 +132,12 @@ public class MainFrame extends JFrame {
 
 	private void previousPage() {
 		textPanel.previousPage();
+		stopReading();
 	}
 
 	private void nextPage() {
 		textPanel.nextPage();
+		stopReading();
 	}
 
 	public void browseDirectoryForFile() {
@@ -150,7 +152,7 @@ public class MainFrame extends JFrame {
 
 	public void startReadingAtCaret() {
 		textPanel.startReadingAt();
-	} 
+	}
 
 	public void makeSmallerFont() {
 		textPanel.setSmallerTextFont();
