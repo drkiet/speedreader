@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -16,6 +17,11 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.drkiettran.tika.text.Document;
+import com.drkiettran.tika.text.Page;
 import com.drkiettran.tika.text.TextApp;
 import com.drkiettran.tools.speedreader.ReaderListener.Command;
 
@@ -25,6 +31,8 @@ import com.drkiettran.tools.speedreader.ReaderListener.Command;
  *
  */
 public class FormPanel extends JPanel {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FormPanel.class);
+
 	private static final long serialVersionUID = 3506596135223108382L;
 	private JLabel fileNameLabel;
 	private JTextField fileNameField;
@@ -39,12 +47,17 @@ public class FormPanel extends JPanel {
 	private Integer speedWpm = 200;
 	private String fileName;
 	private String text;
+	private ReaderListener readerListener;
+
+	private Document document = null;
+
+	public Document getDocument() {
+		return document;
+	}
 
 	public String getText() {
 		return text;
 	}
-
-	private ReaderListener readerListener;
 
 	public Integer getSpeedWpm() {
 		return speedWpm;
@@ -77,6 +90,21 @@ public class FormPanel extends JPanel {
 			TextApp textApp = new TextApp();
 			try (InputStream is = new FileInputStream(fileName)) {
 				text = textApp.parseToString2(is);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			try (InputStream is = new FileInputStream(fileName)) {
+				if (fileName.endsWith(".pdf")) {
+					document = textApp.getPagesFromPdf(is);
+					LOGGER.info("{} has {} pages", fileName, document.getPageCount());
+//					int pageNo = 1;
+//					while (true) {
+//						Page page = document.nextPage();
+//						LOGGER.info("*** Page {}\n: {}\n", pageNo++, page.getRtm().getText());
+//					}
+				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

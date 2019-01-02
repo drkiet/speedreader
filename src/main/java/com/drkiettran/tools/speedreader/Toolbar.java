@@ -24,6 +24,8 @@ public class Toolbar extends JPanel implements ActionListener {
 	private JButton smallerTextFontButton;
 	private JButton largerWordFontButton;
 	private JButton smallerWordFontButton;
+	private JButton previousPageButton;
+	private JButton nextPageButton;
 	private JButton helpPictureButton;
 
 	private ImageIcon createIcon(String path) {
@@ -61,6 +63,14 @@ public class Toolbar extends JPanel implements ActionListener {
 		smallerTextFontButton.setIcon(createIcon("/icons/Down16.gif"));
 		smallerTextFontButton.setToolTipText("Smaller text size");
 
+		previousPageButton = new JButton();
+		previousPageButton.setIcon(createIcon("/icons/previous16.gif"));
+		previousPageButton.setToolTipText("Previous Page");
+
+		nextPageButton = new JButton();
+		nextPageButton.setIcon(createIcon("/icons/next16.gif"));
+		nextPageButton.setToolTipText("Next Page");
+
 		largerWordFontButton = new JButton();
 		largerWordFontButton.setIcon(createIcon("/icons/ZoomIn16.gif"));
 		largerWordFontButton.setToolTipText("Larger displaying word size");
@@ -81,6 +91,8 @@ public class Toolbar extends JPanel implements ActionListener {
 		smallerTextFontButton.addActionListener(this);
 		largerWordFontButton.addActionListener(this);
 		smallerWordFontButton.addActionListener(this);
+		previousPageButton.addActionListener(this);
+		nextPageButton.addActionListener(this);
 		helpPictureButton.addActionListener(this);
 
 		setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -90,6 +102,8 @@ public class Toolbar extends JPanel implements ActionListener {
 		add(resetButton);
 		add(largerTextFontButton);
 		add(smallerTextFontButton);
+		add(previousPageButton);
+		add(nextPageButton);
 		add(largerWordFontButton);
 		add(smallerWordFontButton);
 		add(helpPictureButton);
@@ -114,6 +128,10 @@ public class Toolbar extends JPanel implements ActionListener {
 				readerListener.invoke(Command.LARGER_TEXT_FONT);
 			} else if (clicked == smallerTextFontButton) {
 				readerListener.invoke(Command.SMALLER_TEXT_FONT);
+			} else if (clicked == previousPageButton) {
+				readerListener.invoke(Command.PREVIOUS_PAGE);
+			} else if (clicked == nextPageButton) {
+				readerListener.invoke(Command.NEXT_PAGE);
 			} else if (clicked == largerWordFontButton) {
 				readerListener.invoke(Command.LARGER_WORD_FONT);
 			} else if (clicked == smallerWordFontButton) {

@@ -95,6 +95,14 @@ public class MainFrame extends JFrame {
 				makeSmallerFont();
 				break;
 
+			case PREVIOUS_PAGE:
+				previousPage();
+				break;
+
+			case NEXT_PAGE:
+				nextPage();
+				break;
+
 			case LARGER_WORD_FONT:
 				textPanel.setLargerWordFont();
 				break;
@@ -122,6 +130,14 @@ public class MainFrame extends JFrame {
 		setVisible(true);
 	}
 
+	private void previousPage() {
+		textPanel.previousPage();
+	}
+
+	private void nextPage() {
+		textPanel.nextPage();
+	}
+
 	public void browseDirectoryForFile() {
 		if (fileChooser.showSaveDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
 			formPanel.setFileName(fileChooser.getSelectedFile().getAbsolutePath());
@@ -129,12 +145,12 @@ public class MainFrame extends JFrame {
 	}
 
 	public void loadTextFromFile() {
-		textPanel.loadTextFromFile(formPanel.getText());
+		textPanel.loadTextFromFile(formPanel.getDocument());
 	}
 
 	public void startReadingAtCaret() {
 		textPanel.startReadingAt();
-	}
+	} 
 
 	public void makeSmallerFont() {
 		textPanel.setSmallerTextFont();

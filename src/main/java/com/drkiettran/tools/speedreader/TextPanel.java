@@ -17,7 +17,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JToolTip;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -30,6 +29,8 @@ import javax.swing.text.Highlighter.HighlightPainter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.drkiettran.tika.text.Document;
+import com.drkiettran.tika.text.Page;
 import com.drkiettran.tika.text.ReadingTextManager;
 import com.drkiettran.tika.text.SearchResult;
 import com.drkiettran.tika.text.TextApp;
@@ -48,6 +49,7 @@ public class TextPanel extends JPanel {
 	private static final int LARGEST_DISPLAYING_FONT_SIZE = 100;
 	private static final int LARGEST_TEXT_AREA_FONT_SIZE = 32;
 	private static final long serialVersionUID = -825536523977292110L;
+
 	private String helpText = loadHelpText();
 	private JTextArea textArea;
 	private JLabel displayingWordLabel;
@@ -74,8 +76,8 @@ public class TextPanel extends JPanel {
 	private Object highlightSelectedWord = null;
 	private Word selectedWord = null;
 	private Word wordAtMousePos = null;
-
 	private String searchText;
+	private Document document = null;
 
 	public boolean isDoneReading() {
 		return doneReading;
@@ -217,7 +219,11 @@ public class TextPanel extends JPanel {
 							if (mouseOverWord(caretPos)) {
 								curWord = wordAtMousePos.getTransformedWord();
 								SearchResult sr = readingTextManager.search(curWord);
-								String tip = String.format("%d '%s's found", sr.getNumberMatchedWords(), curWord);
+								String tip = String.format(
+										"<html><p><font color=\"#800080\" "
+												+ "size=\"4\" face=\"Verdana\">%d '%s's found" + "</font></p></html>",
+										sr.getNumberMatchedWords(), curWord);
+//								String tip = String.format("%d '%s's found", sr.getNumberMatchedWords(), curWord);
 								textArea.setToolTipText(tip);
 							}
 
@@ -253,6 +259,7 @@ public class TextPanel extends JPanel {
 	}
 
 	private void restart() {
+		LOGGER.info("Restart Reading to load help ...");
 		readingTextManager = new ReadingTextManager(helpText);
 	}
 
@@ -316,10 +323,19 @@ public class TextPanel extends JPanel {
 	private void displayReadingInformation() {
 		int wordsFromBeginning = readingTextManager.getWordsFromBeginning();
 		int totalWords = readingTextManager.getTotalWords();
-		int readingPercentage = (100 * wordsFromBeginning) / totalWords;
+		int readingPercentage = 0;
+		
+		if (totalWords != 0) {
+			readingPercentage = (100 * wordsFromBeginning) / totalWords;
+		}
 
-		infoLabel.setText(String.format("%d of %d words (%d%%) - line %d of %d", wordsFromBeginning, totalWords,
-				readingPercentage, getCurrentLineNumber(), getLineCount()));
+		String docInfo = "";
+		if (document != null) {
+			docInfo = String.format("page %d of %d", document.getCurrentPageNumber(), document.getPageCount());
+		}
+
+		infoLabel.setText(String.format("%s: %d of %d words (%d%%) - line %d of %d", docInfo, wordsFromBeginning,
+				totalWords, readingPercentage, getCurrentLineNumber(), getLineCount()));
 		infoLabel.setForeground(Color.BLUE);
 	}
 
@@ -387,6 +403,10 @@ public class TextPanel extends JPanel {
 
 	public void startReading() {
 		textArea.setCaret(new FancyCaret());
+		if (document != null && readingTextManager == null) {
+			this.nextPage();
+		}
+
 		if (readingTextManager != null) {
 			textArea.setCaretPosition(readingTextManager.getCurrentCaret());
 		} else {
@@ -476,6 +496,36 @@ public class TextPanel extends JPanel {
 		if (readingTextManager != null) {
 			readingTextManager.setCurrentCaret(selectedWord.getIndexOfText());
 			startReading();
+		}
+	}
+
+	public void loadTextFromFile(Document document) {
+		this.document = document;
+	}
+
+	public void previousPage() {
+		if (document != null) {
+			Page page = document.previousPage();
+			if (page != null) {
+				readingTextManager = page.getRtm();
+				readingText = readingTextManager.getReadingText();
+				textArea.setText(readingText);
+				displayReadingInformation();
+				repaint();
+			}
+		}
+	}
+
+	public void nextPage() {
+		if (document != null) {
+			Page page = document.nextPage();
+			if (page != null) {
+				readingTextManager = page.getRtm();
+				readingText = readingTextManager.getReadingText();
+				textArea.setText(readingText);
+				displayReadingInformation();
+				repaint();
+			}
 		}
 	}
 }
