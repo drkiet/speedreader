@@ -506,23 +506,14 @@ public class TextPanel extends JPanel {
 
 	public void loadTextFromFile(Document document) {
 		this.document = document;
-		this.nextPage();
+		displayPageText(document.getCurrentPage());
 	}
 
 	public void previousPage() {
 		if (document != null) {
 			Page page = document.previousPage();
 			if (page != null) {
-				readingTextManager = page.getRtm();
-				readingText = readingTextManager.getReadingText();
-				if (emptyReadingText()) {
-					textArea.setText("*** PAGE IS EMPTY! ***");
-				} else {
-					textArea.setText(readingText);
-				}
-				textArea.setCaretPosition(0);
-				displayReadingInformation();
-				repaint();
+				displayPageText(page);
 			}
 		}
 	}
@@ -531,18 +522,22 @@ public class TextPanel extends JPanel {
 		if (document != null) {
 			Page page = document.nextPage();
 			if (page != null) {
-				readingTextManager = page.getRtm();
-				readingText = readingTextManager.getReadingText();
-				if (emptyReadingText()) {
-					textArea.setText("*** PAGE IS EMPTY! ***");
-				} else {
-					textArea.setText(readingText);
-				}
-				textArea.setCaretPosition(0);
-				displayReadingInformation();
-				repaint();
+				displayPageText(page);
 			}
 		}
+	}
+
+	public void displayPageText(Page page) {
+		readingTextManager = page.getRtm();
+		readingText = readingTextManager.getReadingText();
+		if (emptyReadingText()) {
+			textArea.setText("*** PAGE IS EMPTY! ***");
+		} else {
+			textArea.setText(readingText);
+		}
+		textArea.setCaretPosition(0);
+		displayReadingInformation();
+		repaint();
 	}
 
 	private boolean emptyReadingText() {
@@ -555,7 +550,9 @@ public class TextPanel extends JPanel {
 	}
 
 	public void goTo(int gotoPageNo) {
-		document.setIdx(gotoPageNo - 1);
-		nextPage();
+		if (document != null) {
+			document.setPageNo(gotoPageNo);
+			displayPageText(document.getCurrentPage());
+		}
 	}
 }
