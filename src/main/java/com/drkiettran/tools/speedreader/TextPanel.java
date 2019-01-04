@@ -153,6 +153,7 @@ public class TextPanel extends JPanel {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (readingTextManager != null) {
+					int caretPos = textArea.getCaretPosition();
 					selectedWord = readingTextManager.getWordAt(textArea.getCaretPosition());
 					try {
 						highlightSelectedWord = highlight(selectedWord.getTransformedWord(),
@@ -161,6 +162,8 @@ public class TextPanel extends JPanel {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
+					search(selectedWord.getTransformedWord());
+					textArea.setCaretPosition(caretPos);
 				}
 			}
 
@@ -216,7 +219,7 @@ public class TextPanel extends JPanel {
 
 						if (readingTextManager != null) {
 							wordAtMousePos = readingTextManager.getWordAt(textArea.getCaretPosition());
-							if (mouseOverWord(caretPos)) {
+							if (wordAtMousePos != null && mouseOverWord(caretPos)) {
 								curWord = wordAtMousePos.getTransformedWord();
 								SearchResult sr = readingTextManager.search(curWord);
 								String tip = String.format(
@@ -229,7 +232,7 @@ public class TextPanel extends JPanel {
 
 						}
 
-						LOGGER.info("{}. caret: {}; word: {}", getCurrentLineNumber(), textArea.getCaretPosition(),
+						LOGGER.debug("{}. caret: {}; word: {}", getCurrentLineNumber(), textArea.getCaretPosition(),
 								curWord);
 						repaint();
 					} catch (BadLocationException e1) {
@@ -265,6 +268,7 @@ public class TextPanel extends JPanel {
 
 	public void resetReading() {
 		LOGGER.info("Reset reading ...");
+		document = null;
 		restart();
 		readingText = null;
 		textArea.setText(helpText);
@@ -286,7 +290,7 @@ public class TextPanel extends JPanel {
 		}
 
 		String wordToRead = getNextWord();
-		LOGGER.info("wordtoread: {}", wordToRead);
+		LOGGER.debug("wordtoread: {}", wordToRead);
 		if (wordToRead != null) {
 			if (wordToRead.isEmpty()) {
 				return;
@@ -470,7 +474,7 @@ public class TextPanel extends JPanel {
 
 		for (Integer idx : matchedWords.keySet()) {
 			try {
-				LOGGER.info("highlighted at /{}/", matchedWords.get(idx));
+				LOGGER.debug("highlighted at /{}/", matchedWords.get(idx));
 				highlightedWords.add(highlight(matchedWords.get(idx), idx, Color.GREEN, null));
 			} catch (BadLocationException e) {
 				// TODO Auto-generated catch block
@@ -502,6 +506,7 @@ public class TextPanel extends JPanel {
 
 	public void loadTextFromFile(Document document) {
 		this.document = document;
+		this.nextPage();
 	}
 
 	public void previousPage() {
@@ -510,7 +515,12 @@ public class TextPanel extends JPanel {
 			if (page != null) {
 				readingTextManager = page.getRtm();
 				readingText = readingTextManager.getReadingText();
-				textArea.setText(readingText);
+				if (emptyReadingText()) {
+					textArea.setText("*** PAGE IS EMPTY! ***");
+				} else {
+					textArea.setText(readingText);
+				}
+				textArea.setCaretPosition(0);
 				displayReadingInformation();
 				repaint();
 			}
@@ -523,10 +533,29 @@ public class TextPanel extends JPanel {
 			if (page != null) {
 				readingTextManager = page.getRtm();
 				readingText = readingTextManager.getReadingText();
-				textArea.setText(readingText);
+				if (emptyReadingText()) {
+					textArea.setText("*** PAGE IS EMPTY! ***");
+				} else {
+					textArea.setText(readingText);
+				}
+				textArea.setCaretPosition(0);
 				displayReadingInformation();
 				repaint();
 			}
 		}
+	}
+
+	private boolean emptyReadingText() {
+		for (int idx = 0; idx < readingText.length(); idx++) {
+			if (Character.isAlphabetic(readingText.charAt(idx)) || Character.isDigit(readingText.charAt(idx))) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public void goTo(int gotoPageNo) {
+		document.setIdx(gotoPageNo - 1);
+		nextPage();
 	}
 }

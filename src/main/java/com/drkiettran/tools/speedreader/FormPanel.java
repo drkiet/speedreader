@@ -46,6 +46,20 @@ public class FormPanel extends JPanel {
 
 	private Document document = null;
 
+	private String loadingError = "";
+
+	private JButton goToPageNoButton;
+
+	private JTextField pageNoTextField;
+
+	private JLabel pageNoTextLabel;
+
+	private JButton nextFindButton;
+
+	public String getLoadingError() {
+		return loadingError;
+	}
+
 	public Document getDocument() {
 		return document;
 	}
@@ -69,12 +83,16 @@ public class FormPanel extends JPanel {
 		speedField = new JTextField(10);
 		searchTextLabel = new JLabel("Text");
 		searchTextField = new JTextField(10);
+		pageNoTextLabel = new JLabel("Page No.");
+		pageNoTextField = new JTextField(10);
 		speedField.setText("" + speedWpm);
 
 		setButton = new JButton("Set");
 		loadButton = new JButton("Load");
 		browserButton = new JButton("Browse");
 		searchButton = new JButton("Search");
+		nextFindButton = new JButton("Next");
+		goToPageNoButton = new JButton("Go to");
 
 		setButton.addActionListener((ActionEvent actionEvent) -> {
 			speedWpm = Integer.valueOf(speedField.getText());
@@ -85,7 +103,12 @@ public class FormPanel extends JPanel {
 			TextApp textApp = new TextApp();
 
 			document = textApp.getPages(fileName);
-			LOGGER.info("{} has {} pages", fileName, document.getPageCount());
+			if (document == null) {
+				loadingError = "Unable to load " + fileName;
+			} else {
+				LOGGER.info("{} has {} pages", fileName, document.getPageCount());
+				loadingError = "";
+			}
 			readerListener.invoke(Command.LOAD);
 		});
 
@@ -95,6 +118,14 @@ public class FormPanel extends JPanel {
 
 		searchButton.addActionListener((ActionEvent actionEvent) -> {
 			readerListener.invoke(Command.SEARCH);
+		});
+
+		nextFindButton.addActionListener((ActionEvent actionEvent) -> {
+			readerListener.invoke(Command.NEXTFIND);
+		});
+
+		goToPageNoButton.addActionListener((ActionEvent actionEvent) -> {
+			readerListener.invoke(Command.GOTO);
 		});
 
 		Border innerBorder = BorderFactory.createTitledBorder("Configuration");
@@ -195,13 +226,60 @@ public class FormPanel extends JPanel {
 		//// next row /////////////
 		gc.gridy++;
 		gc.weightx = 1;
-		gc.weighty = 5;
+		gc.weighty = .2; // 5;
 
 		gc.gridx = 1;
 		gc.insets = new Insets(0, 0, 0, 0);
 		gc.anchor = GridBagConstraints.FIRST_LINE_START;
 		add(searchButton, gc);
+
+		//// next row /////////////
+		gc.gridy++;
+		gc.weightx = 1;
+		gc.weighty = .2;
+
+		gc.gridx = 1;
+		gc.insets = new Insets(0, 0, 0, 0);
+		gc.anchor = GridBagConstraints.FIRST_LINE_START;
+		add(nextFindButton, gc);
+
+		// Always do the following to avoid future confusion :)
+		gc.gridy++;
+		gc.weightx = 1;
+		gc.weighty = 0.1;
+
+		gc.gridx = 0;
+		gc.anchor = GridBagConstraints.LINE_END;
+		gc.insets = new Insets(0, 0, 0, 5);
+		add(pageNoTextLabel, gc);
+
+		gc.gridx = 1;
+		gc.insets = new Insets(0, 0, 0, 0);
+		gc.anchor = GridBagConstraints.LINE_START;
+		add(pageNoTextField, gc);
+
+		//// next row /////////////
+		gc.gridy++;
+		gc.weightx = 1;
+		gc.weighty = 5;
+
+		gc.gridx = 1;
+		gc.insets = new Insets(0, 0, 0, 0);
+		gc.anchor = GridBagConstraints.FIRST_LINE_START;
+		add(goToPageNoButton, gc);
+
 		disableSearch();
+		disableGoto();
+	}
+
+	public void disableGoto() {
+		pageNoTextField.setEnabled(false);
+		goToPageNoButton.setEnabled(false);
+	}
+
+	public void enableGoTo() {
+		pageNoTextField.setEnabled(true);
+		goToPageNoButton.setEnabled(true);
 	}
 
 	public void setReaderListener(ReaderListener readerListener) {
@@ -218,11 +296,20 @@ public class FormPanel extends JPanel {
 
 	public void enableSearch() {
 		searchButton.setEnabled(true);
+		nextFindButton.setEnabled(true);
 		searchTextField.setEnabled(true);
 	}
 
 	public void disableSearch() {
 		searchButton.setEnabled(false);
+		nextFindButton.setEnabled(false);
 		searchTextField.setEnabled(false);
+	}
+
+	public int getGotoPageNo() {
+		if (!pageNoTextField.getText().trim().isEmpty()) {
+			return Integer.valueOf(pageNoTextField.getText());
+		}
+		return -1;
 	}
 }
