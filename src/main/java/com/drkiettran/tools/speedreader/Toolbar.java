@@ -41,19 +41,19 @@ public class Toolbar extends JPanel implements ActionListener {
 		setBorder(BorderFactory.createEtchedBorder());
 		readButton = new JButton();
 		readButton.setIcon(createIcon("/icons/Play16.gif"));
-		readButton.setToolTipText("Read");
+		readButton.setToolTipText("Start Reading (Play)");
 
 		stopButton = new JButton();
 		stopButton.setIcon(createIcon("/icons/Pause16.gif"));
-		stopButton.setToolTipText("Stop");
+		stopButton.setToolTipText("Pause Reading");
 
 		resetButton = new JButton();
 		resetButton.setIcon(createIcon("/icons/Stop16.gif"));
-		resetButton.setToolTipText("Reset");
+		resetButton.setToolTipText("Reset (Stop)");
 
 		readAtButton = new JButton();
 		readAtButton.setIcon(createIcon("/icons/StepForward16.gif"));
-		readAtButton.setToolTipText("Read At");
+		readAtButton.setToolTipText("Start Reading At Cursor");
 
 		largerTextFontButton = new JButton();
 		largerTextFontButton.setIcon(createIcon("/icons/Up16.gif"));

@@ -28,7 +28,6 @@ public class MainFrame extends JFrame {
 	private String fileName;
 	private Document document;
 	private List<SearchResult> searchResults = null;
-	private int findIdx;
 	private String searchText;
 
 	public MainFrame() throws IOException {
@@ -43,6 +42,7 @@ public class MainFrame extends JFrame {
 		fileChooser = new JFileChooser();
 
 		helpPictureDialog = new HelpPictureDialog(this);
+		textPanel.setInfoPanel(infoPanel);
 
 		formPanel.setReaderListener((Command cmd) -> {
 			switch (cmd) {
@@ -81,7 +81,7 @@ public class MainFrame extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (isReading()) {
-					stopReading();
+					pauseReading();
 				} else {
 					startReading();
 				}
@@ -102,7 +102,7 @@ public class MainFrame extends JFrame {
 				resetReading();
 				// let it fall ...
 			case STOP:
-				stopReading();
+				pauseReading();
 				break;
 
 			case LARGER_TEXT_FONT:
@@ -174,12 +174,12 @@ public class MainFrame extends JFrame {
 		}
 
 		searchResults = document.search(searchText);
-		StringBuilder sb = new StringBuilder("\nSearch results: \n");
+		StringBuilder sb = new StringBuilder("\nSearch results: <br>\n");
 		for (int idx = 0; idx < searchResults.size(); idx++) {
 			SearchResult sr = searchResults.get(idx);
 			if (sr.getNumberMatchedWords() > 0) {
 				sb.append("page ").append(idx + 1);
-				sb.append(" has ").append(sr.getNumberMatchedWords()).append(" ").append(searchText).append('\n');
+				sb.append(" has ").append(sr.getNumberMatchedWords()).append(" ").append(searchText).append("<br>\n");
 			}
 		}
 
@@ -188,12 +188,12 @@ public class MainFrame extends JFrame {
 
 	private void previousPage() {
 		textPanel.previousPage();
-		stopReading();
+		pauseReading();
 	}
 
 	private void nextPage() {
 		textPanel.nextPage();
-		stopReading();
+		pauseReading();
 	}
 
 	public void browseDirectoryForFile() {
@@ -240,12 +240,12 @@ public class MainFrame extends JFrame {
 		textPanel.resetReading();
 	}
 
-	public void stopReading() {
+	public void pauseReading() {
 		if (isReading()) {
 			timer.cancel();
 			textTimerTask = null;
 			timer = null;
-			textPanel.stopReading();
+			textPanel.pauseReading();
 		}
 	}
 

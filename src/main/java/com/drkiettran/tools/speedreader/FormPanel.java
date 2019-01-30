@@ -39,22 +39,18 @@ public class FormPanel extends JPanel {
 	private JTextField searchTextField;
 	private JButton searchButton;
 	private JButton setButton;
+	private JButton goToPageNoButton;
+	private JTextField pageNoTextField;
+	private JLabel pageNoTextLabel;
+	private JButton nextFindButton;
+
 	private Integer speedWpm = 200;
 	private String fileName;
 	private String text;
 	private ReaderListener readerListener;
 
 	private Document document = null;
-
 	private String loadingError = "";
-
-	private JButton goToPageNoButton;
-
-	private JTextField pageNoTextField;
-
-	private JLabel pageNoTextLabel;
-
-	private JButton nextFindButton;
 
 	public String getLoadingError() {
 		return loadingError;

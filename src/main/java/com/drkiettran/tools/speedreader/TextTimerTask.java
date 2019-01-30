@@ -14,7 +14,7 @@ public class TextTimerTask extends TimerTask {
 	@Override
 	public void run() {
 		try {
-			textPanel.next();
+			textPanel.nextWord();
 		} catch (BadLocationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

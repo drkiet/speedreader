@@ -6,6 +6,8 @@ import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -17,6 +19,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -36,6 +39,7 @@ import com.drkiettran.text.model.Page;
 import com.drkiettran.text.model.SearchResult;
 import com.drkiettran.text.model.Word;
 import com.drkiettran.tools.speedreader.ReaderListener.Command;
+import com.drkiettran.tools.speedreader.util.CommonUtils;
 
 public class TextPanel extends JPanel {
 	private static final String LINE_INFO = " *** line: ";
@@ -58,6 +62,7 @@ public class TextPanel extends JPanel {
 	private JLabel titleLabel;
 	private ReaderListener readerListener;
 	private ReadingTextManager readingTextManager;
+	private InfoPanel infoPanel;
 
 	private String displayingFontName = "Candara";
 	private String infoFontName = "Candara";
@@ -67,7 +72,6 @@ public class TextPanel extends JPanel {
 	private int textAreaFontSize = DEFAULT_TEXT_AREA_FONT_SIZE;
 	private int defaultBlinkRate = 0;
 	private boolean doneReading = false;
-
 	private Object highlightedWord = null;
 
 	private SearchResult searchResult = null;
@@ -142,6 +146,7 @@ public class TextPanel extends JPanel {
 		});
 
 		textArea.addMouseMotionListener(getMouseMotionListener());
+//		textArea.addMouseWheelListener(getMouseWheelListener());
 		textArea.addMouseListener(getMouseListner());
 
 	}
@@ -152,15 +157,21 @@ public class TextPanel extends JPanel {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
+				SwingUtilities.isLeftMouseButton(e);
+				SwingUtilities.isRightMouseButton(e);
+				SwingUtilities.isMiddleMouseButton(e);
+
 				if (readingTextManager != null) {
 					int caretPos = textArea.getCaretPosition();
 					selectedWord = readingTextManager.getWordAt(textArea.getCaretPosition());
+					if (SwingUtilities.isRightMouseButton(e)) {
+						infoPanel.addText(CommonUtils.getDefinitionForWord(selectedWord.getTransformedWord()));
+					}
 					try {
 						highlightSelectedWord = highlight(selectedWord.getTransformedWord(),
 								selectedWord.getIndexOfText(), Color.GRAY, highlightSelectedWord);
 					} catch (BadLocationException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
+						LOGGER.info("Bad Location Exception: " + e);
 					}
 					search(selectedWord.getTransformedWord());
 					textArea.setCaretPosition(caretPos);
@@ -280,7 +291,7 @@ public class TextPanel extends JPanel {
 		repaint();
 	}
 
-	public void next() throws BadLocationException {
+	public void nextWord() throws BadLocationException {
 
 		if (readingText == null) {
 			doneReading = false;
@@ -357,8 +368,7 @@ public class TextPanel extends JPanel {
 		try {
 			return textArea.getLineOfOffset(textArea.getCaretPosition()) + 1;
 		} catch (BadLocationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.info("Bad Location Exception: " + e);
 		}
 		return -1;
 	}
@@ -398,7 +408,7 @@ public class TextPanel extends JPanel {
 		return null;
 	}
 
-	public void stopReading() {
+	public void pauseReading() {
 		textArea.setCaret(new DefaultCaret());
 		textArea.getCaret().setBlinkRate(defaultBlinkRate);
 		textArea.setCaretPosition(readingTextManager.getCurrentCaret());
@@ -554,5 +564,9 @@ public class TextPanel extends JPanel {
 			document.setPageNo(gotoPageNo);
 			displayPageText(document.getCurrentPage());
 		}
+	}
+
+	public void setInfoPanel(InfoPanel infoPanel) {
+		this.infoPanel = infoPanel;
 	}
 }

@@ -2,6 +2,7 @@ package com.drkiettran.tools.speedreader;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -10,7 +11,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 import javax.swing.border.Border;
 
 import org.slf4j.Logger;
@@ -20,9 +21,10 @@ public class InfoPanel extends JPanel {
 
 	private static final long serialVersionUID = -6861378863577764057L;
 	private JLabel fileNameLabel;
-	private JTextArea resultText;
+	private JTextPane resultText;
 	protected Integer selectedPageNo = null;
 	private MainFrame mainFrame;
+	private String messageText = "";
 
 	public Integer getSelectedPageNo() {
 		return selectedPageNo;
@@ -37,7 +39,9 @@ public class InfoPanel extends JPanel {
 
 	private void arrangeLayout() {
 		setLayout(new BorderLayout());
-		add(new JScrollPane(resultText), BorderLayout.CENTER);
+		JScrollPane scrollPane = new JScrollPane(resultText);
+		scrollPane.getViewport().setPreferredSize(new Dimension(100, 100));
+		add(scrollPane, BorderLayout.CENTER);
 		add(fileNameLabel, BorderLayout.SOUTH);
 	}
 
@@ -49,14 +53,12 @@ public class InfoPanel extends JPanel {
 	}
 
 	private void makeTextArea() {
-		resultText = new JTextArea(5, 100);
+		resultText = new JTextPane();
 		resultText.setCaretPosition(0);
 		resultText.setCaretColor(Color.white);
-		resultText.setFont(new Font("Candara", Font.PLAIN, 12));
-		resultText.setLineWrap(true);
-		resultText.setWrapStyleWord(true);
-		resultText.setEditable(false);
+		resultText.setContentType("text/html");
 		resultText.setText("");
+
 		resultText.addMouseListener(getMouseListner());
 	}
 
@@ -120,11 +122,13 @@ public class InfoPanel extends JPanel {
 	}
 
 	public void addText(String text) {
-		resultText.append(text);
+		messageText = new StringBuilder(messageText).append("<br>").append(text).append("<br>").toString();
+		resultText.setText(messageText);
 	}
 
 	public void clearText() {
-		resultText.setText("");
+		messageText = "";
+		resultText.setText(messageText);
 	}
 
 	public void setFrame(MainFrame mainFrame) {
